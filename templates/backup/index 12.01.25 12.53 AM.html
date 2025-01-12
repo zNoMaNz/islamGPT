@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bangla QA Web App</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    #question {
+      width: 100%;
+      max-width: 600px;
+      height: 80px;
+    }
+    #answer {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ask the AI (Bangla or Other Languages)</h1>
+
+  <!-- Text area for user to type question -->
+  <textarea id="question" placeholder="Enter your question here..."></textarea>
+  <br><br>
+
+  <!-- Button to send the question -->
+  <button id="askBtn">Ask</button>
+
+  <!-- Container to show the AI's response -->
+  <div id="answer"></div>
+
+  <script>
+    // On "Ask" button click, send the question to our /ask API
+    document.getElementById("askBtn").addEventListener("click", async () => {
+      const question = document.getElementById("question").value;
+      const answerBox = document.getElementById("answer");
+      try {
+        // Make a POST request to /ask with JSON body
+        const response = await fetch("/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question }),
+        });
+        const data = await response.json();
+
+        // If there's an answer, display it
+        if (data.answer) {
+          answerBox.textContent = data.answer;
+        } else {
+          answerBox.textContent = "No answer received.";
+        }
+      } catch (err) {
+        // In case of an error, show the error message
+        console.error(err);
+        answerBox.textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
