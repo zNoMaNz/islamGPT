@@ -210,10 +210,15 @@
       currentThreadId = Object.keys(threads)[0];
     }
 
-    // Simple helper to convert **bold** syntax into <strong> tags
-    function replaceBoldSyntax(text) {
-      return text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-    }
+    // Function to adjust layout on keyboard visibility
+    const adjustForKeyboard = () => {
+      const chatContainer = document.querySelector(".chat-container");
+      const viewportHeight = window.innerHeight; // Get updated viewport height
+      chatContainer.style.height = `${viewportHeight}px`;
+    };
+
+    // Listen for resize events (e.g., keyboard opening/closing)
+    window.addEventListener("resize", adjustForKeyboard);
 
     function renderThreads() {
       const threadList = document.getElementById("threads");
@@ -224,12 +229,10 @@
         threadDiv.className =
           "thread" + (threadId === currentThreadId ? " active" : "");
 
-        // Thread name
         const threadName = document.createElement("span");
         threadName.textContent = threads[threadId].name || `Thread ${threadId}`;
         threadDiv.appendChild(threadName);
 
-        // Delete button
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "delete-thread";
         deleteBtn.textContent = "×";
@@ -284,11 +287,7 @@
       for (const message of messages) {
         const messageDiv = document.createElement("div");
         messageDiv.className = "message " + message.role;
-
-        // Convert **bold** to <strong>, then set innerHTML
-        const safeHtml = replaceBoldSyntax(message.content);
-        messageDiv.innerHTML = safeHtml;
-
+        messageDiv.textContent = message.content;
         chatHistory.appendChild(messageDiv);
       }
 
@@ -302,7 +301,6 @@
 
       threads[currentThreadId].messages.push({ role: "user", content: question });
 
-      // If this is the first message in the thread, update thread name
       if (threads[currentThreadId].messages.length === 1) {
         threads[currentThreadId].name =
           question.length > 20 ? question.substring(0, 20) + "..." : question;
@@ -336,8 +334,7 @@
           const { value, done: readerDone } = await reader.read();
           done = readerDone;
           if (value) {
-            let chunk = decoder.decode(value, { stream: true });
-            // Store chunk as plain text in memory
+            const chunk = decoder.decode(value, { stream: true });
             threads[currentThreadId].messages[assistantIndex].content += chunk;
             renderChatHistory();
           }
@@ -363,7 +360,6 @@
       renderChatHistory();
     });
 
-    // Event listener for creating new threads
     document.querySelector(".add-thread").addEventListener("click", () => {
       currentThreadId = createNewThread();
       renderChatHistory();
@@ -373,5 +369,6 @@
     renderChatHistory();
   });
 </script>
+
 </body>
 </html>
