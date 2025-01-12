@@ -13,6 +13,7 @@
       height: 100%;
       margin: 0;
       padding: 0;
+      overflow-x: hidden; /* Prevent horizontal scrolling */
     }
 
     body {
@@ -31,6 +32,7 @@
       padding: 1rem;
       display: flex;
       flex-direction: column;
+      box-sizing: border-box; /* Ensure padding and border are included in width */
     }
 
     .thread {
@@ -69,6 +71,7 @@
       border-radius: 5px;
       text-align: center;
       cursor: pointer;
+      width: 100%; /* Full width for consistency */
     }
 
     .chat-container {
@@ -77,6 +80,7 @@
       flex-direction: column;
       padding: 1rem;
       background-color: #1f1f1f;
+      box-sizing: border-box;
     }
 
     .chat-header h2 {
@@ -91,6 +95,8 @@
       border: 1px solid #333;
       border-radius: 5px;
       background-color: #1a1a1a;
+      max-width: 100%; /* Prevent overflow */
+      word-wrap: break-word; /* Ensure text wraps */
     }
 
     .message {
@@ -115,12 +121,14 @@
       background-color: #2f2f2f;
       color: #fff;
       border: 1px solid #444;
+      width: 100%; /* Full width */
     }
 
     button, textarea {
       -webkit-appearance: none;
     }
 
+    /* Media query for small screens */
     @media (max-width: 768px) {
       body {
         flex-direction: column; /* Stack threads and chat vertically */
@@ -131,10 +139,16 @@
         max-width: none;
         border-right: none;
         border-bottom: 1px solid #333;
+        padding: 0.5rem; /* Adjust padding */
+        font-size: 0.9rem; /* Smaller font */
       }
 
       .chat-container {
         width: 100%; /* Full width chat container */
+      }
+
+      #question, .add-thread, #askBtn, #clearBtn {
+        width: 100%; /* Full width for inputs and buttons */
       }
     }
   </style>
@@ -155,184 +169,168 @@
     <button id="askBtn" class="btn btn-primary mt-2">Ask</button>
     <button id="clearBtn" class="btn btn-danger mt-2">Clear Chat</button>
   </div>
-  
-  <style>
-	  /* Styling the placeholder text */
-	  #question::placeholder {
-		color: #ffffff; /* Set placeholder text color */
-		font-weight: bold; /* Make the placeholder bold */
-		font-style: italic; /* Optional: Make italic */
-	  }
 
-	  /* Highlight effect for the entire textarea */
-	  #question {
-		background-color: #444444; /* Highlight the textarea background */
-		color: #ffffff; /* Text color inside the textarea */
-		font-weight: bold; /* Bold text */
-	  }
-	</style>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let threads = JSON.parse(localStorage.getItem("threads")) || {};
+      let currentThreadId;
 
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    let threads = JSON.parse(localStorage.getItem("threads")) || {};
-    let currentThreadId;
-
-    // Ensure there is at least one thread at startup
-    if (Object.keys(threads).length === 0) {
-      currentThreadId = createNewThread();
-    } else {
-      currentThreadId = Object.keys(threads)[0];
-    }
-
-    function renderThreads() {
-      const threadList = document.getElementById("threads");
-      threadList.innerHTML = "";
-
-      for (const threadId in threads) {
-        const threadDiv = document.createElement("div");
-        threadDiv.className =
-          "thread" + (threadId === currentThreadId ? " active" : "");
-
-        // Thread name
-        const threadName = document.createElement("span");
-        threadName.textContent = threads[threadId].name || `Thread ${threadId}`;
-        threadDiv.appendChild(threadName);
-
-        // Delete button
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "delete-thread";
-        deleteBtn.textContent = "×";
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation();
-          deleteThread(threadId);
-        };
-        threadDiv.appendChild(deleteBtn);
-
-        threadDiv.onclick = () => switchThread(threadId);
-        threadList.appendChild(threadDiv);
-      }
-    }
-
-    function createNewThread() {
-      const threadId = Date.now().toString();
-      threads[threadId] = {
-        name: `Thread ${Object.keys(threads).length + 1}`,
-        messages: [],
-      };
-      localStorage.setItem("threads", JSON.stringify(threads));
-      renderThreads();
-      return threadId;
-    }
-
-    function deleteThread(threadId) {
-      delete threads[threadId];
-      localStorage.setItem("threads", JSON.stringify(threads));
-
-      const threadIds = Object.keys(threads);
-      if (threadIds.length > 0) {
-        currentThreadId = threadIds[0];
-      } else {
+      // Ensure there is at least one thread at startup
+      if (Object.keys(threads).length === 0) {
         currentThreadId = createNewThread();
+      } else {
+        currentThreadId = Object.keys(threads)[0];
       }
 
-      renderThreads();
-      renderChatHistory();
-    }
+      function renderThreads() {
+        const threadList = document.getElementById("threads");
+        threadList.innerHTML = "";
 
-    function switchThread(threadId) {
-      currentThreadId = threadId;
-      renderThreads();
-      renderChatHistory();
-    }
+        for (const threadId in threads) {
+          const threadDiv = document.createElement("div");
+          threadDiv.className =
+            "thread" + (threadId === currentThreadId ? " active" : "");
 
-    function renderChatHistory() {
-      const chatHistory = document.getElementById("chat-history");
-      chatHistory.innerHTML = "";
+          // Thread name
+          const threadName = document.createElement("span");
+          threadName.textContent = threads[threadId].name || `Thread ${threadId}`;
+          threadDiv.appendChild(threadName);
 
-      const messages = threads[currentThreadId].messages || [];
-      for (const message of messages) {
-        const messageDiv = document.createElement("div");
-        messageDiv.className = "message " + message.role;
-        messageDiv.textContent = message.content;
-        chatHistory.appendChild(messageDiv);
+          // Delete button
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "delete-thread";
+          deleteBtn.textContent = "×";
+          deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteThread(threadId);
+          };
+          threadDiv.appendChild(deleteBtn);
+
+          threadDiv.onclick = () => switchThread(threadId);
+          threadList.appendChild(threadDiv);
+        }
       }
 
-      chatHistory.scrollTop = chatHistory.scrollHeight;
-    }
-
-    async function sendMessage() {
-      const questionInput = document.getElementById("question");
-      const question = questionInput.value.trim();
-      if (!question) return;
-
-      threads[currentThreadId].messages.push({ role: "user", content: question });
-      if (threads[currentThreadId].messages.length === 1) {
-        threads[currentThreadId].name = question.length > 20 ? question.substring(0, 20) + "..." : question;
+      function createNewThread() {
+        const threadId = Date.now().toString();
+        threads[threadId] = {
+          name: `Thread ${Object.keys(threads).length + 1}`,
+          messages: [],
+        };
+        localStorage.setItem("threads", JSON.stringify(threads));
+        renderThreads();
+        return threadId;
       }
-      localStorage.setItem("threads", JSON.stringify(threads));
 
-      questionInput.value = "";
-      renderChatHistory();
+      function deleteThread(threadId) {
+        delete threads[threadId];
+        localStorage.setItem("threads", JSON.stringify(threads));
 
-      try {
-        const response = await fetch("/ask_stream", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question: question,
-            thread_id: currentThreadId,
-          }),
-        });
+        const threadIds = Object.keys(threads);
+        if (threadIds.length > 0) {
+          currentThreadId = threadIds[0];
+        } else {
+          currentThreadId = createNewThread();
+        }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let done = false;
+        renderThreads();
+        renderChatHistory();
+      }
 
-        const assistantIndex =
-          threads[currentThreadId].messages.push({
-            role: "assistant",
-            content: "",
-          }) - 1;
+      function switchThread(threadId) {
+        currentThreadId = threadId;
+        renderThreads();
+        renderChatHistory();
+      }
 
-        while (!done) {
-          const { value, done: readerDone } = await reader.read();
-          done = readerDone;
-          if (value) {
-            const chunk = decoder.decode(value, { stream: true });
-            threads[currentThreadId].messages[assistantIndex].content += chunk;
-            renderChatHistory();
-          }
+      function renderChatHistory() {
+        const chatHistory = document.getElementById("chat-history");
+        chatHistory.innerHTML = "";
+
+        const messages = threads[currentThreadId].messages || [];
+        for (const message of messages) {
+          const messageDiv = document.createElement("div");
+          messageDiv.className = "message " + message.role;
+          messageDiv.textContent = message.content;
+          chatHistory.appendChild(messageDiv);
+        }
+
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+      }
+
+      async function sendMessage() {
+        const questionInput = document.getElementById("question");
+        const question = questionInput.value.trim();
+        if (!question) return;
+
+        threads[currentThreadId].messages.push({ role: "user", content: question });
+        if (threads[currentThreadId].messages.length === 1) {
+          threads[currentThreadId].name = question.length > 20 ? question.substring(0, 20) + "..." : question;
         }
         localStorage.setItem("threads", JSON.stringify(threads));
-      } catch (err) {
-        console.error("Error fetching response:", err);
+
+        questionInput.value = "";
+        renderChatHistory();
+
+        try {
+          const response = await fetch("/ask_stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              question: question,
+              thread_id: currentThreadId,
+            }),
+          });
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let done = false;
+
+          const assistantIndex =
+            threads[currentThreadId].messages.push({
+              role: "assistant",
+              content: "",
+            }) - 1;
+
+          while (!done) {
+            const { value, done: readerDone } = await reader.read();
+            done = readerDone;
+            if (value) {
+              const chunk = decoder.decode(value, { stream: true });
+              threads[currentThreadId].messages[assistantIndex].content += chunk;
+              renderChatHistory();
+            }
+          }
+          localStorage.setItem("threads", JSON.stringify(threads));
+        } catch (err) {
+          console.error("Error fetching response:", err);
+        }
       }
-    }
 
-    document.getElementById("askBtn").addEventListener("click", sendMessage);
+      document.getElementById("askBtn").addEventListener("click", sendMessage);
 
-    document.getElementById("question").addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-      }
-    });
+      document.getElementById("question").addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+        }
+      });
 
-    document.getElementById("clearBtn").addEventListener("click", () => {
-      threads[currentThreadId].messages = [];
-      localStorage.setItem("threads", JSON.stringify(threads));
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        threads[currentThreadId].messages = [];
+        localStorage.setItem("threads", JSON.stringify(threads));
+        renderChatHistory();
+      });
+
+      // Event listener for creating new threads
+      document.querySelector(".add-thread").addEventListener("click", () => {
+        currentThreadId = createNewThread();
+        renderChatHistory();
+      });
+
+      renderThreads();
       renderChatHistory();
     });
-
-    // Event listener for creating new threads
-    document.querySelector(".add-thread").addEventListener("click", () => {
-      currentThreadId = createNewThread();
-      renderChatHistory();
-    });
-
-    renderThreads();
-    renderChatHistory();
-  });
-</script>
+  </script>
 </body>
 </html>
