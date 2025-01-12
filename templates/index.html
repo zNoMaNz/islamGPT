@@ -210,6 +210,11 @@
       currentThreadId = Object.keys(threads)[0];
     }
 
+    // Simple helper to convert **bold** syntax into <strong> tags
+    function replaceBoldSyntax(text) {
+      return text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+    }
+
     function renderThreads() {
       const threadList = document.getElementById("threads");
       threadList.innerHTML = "";
@@ -279,7 +284,11 @@
       for (const message of messages) {
         const messageDiv = document.createElement("div");
         messageDiv.className = "message " + message.role;
-        messageDiv.textContent = message.content;
+
+        // Convert **bold** to <strong>, then set innerHTML
+        const safeHtml = replaceBoldSyntax(message.content);
+        messageDiv.innerHTML = safeHtml;
+
         chatHistory.appendChild(messageDiv);
       }
 
@@ -327,7 +336,8 @@
           const { value, done: readerDone } = await reader.read();
           done = readerDone;
           if (value) {
-            const chunk = decoder.decode(value, { stream: true });
+            let chunk = decoder.decode(value, { stream: true });
+            // Store chunk as plain text in memory
             threads[currentThreadId].messages[assistantIndex].content += chunk;
             renderChatHistory();
           }
