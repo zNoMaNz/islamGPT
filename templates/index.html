@@ -2,35 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <!-- Viewport meta for responsive design on mobile -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IslamicGPT (Strengthen your Iman)</title>
+  <!-- Bootstrap CSS -->
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
   />
   <style>
+    /* Reset default body margins and ensure no horizontal overflow */
     html, body {
+      width: 100%;
+      max-width: 100%;
       height: 100%;
       margin: 0;
       padding: 0;
+      overflow-x: hidden; /* ensures no horizontal scrolling if an element tries to stretch */
     }
 
     body {
       display: flex;
-      flex-direction: row;
+      flex-direction: row; 
       background-color: #121212;
       color: #ffffff;
       font-family: sans-serif;
     }
 
+    /* Thread list sidebar */
     .thread-list {
       width: 25%;
-      max-width: 300px;
+      max-width: 300px; 
+      min-width: 200px;  /* Ensures it never shrinks too small */
       border-right: 1px solid #333;
       background-color: #1a1a1a;
       padding: 1rem;
       display: flex;
       flex-direction: column;
+      box-sizing: border-box; 
     }
 
     .thread {
@@ -71,26 +80,33 @@
       cursor: pointer;
     }
 
+    /* Main chat area */
     .chat-container {
-      flex: 1;
+      flex: 1;             /* Expand to fill remaining space */
+      min-width: 0;        /* Important to prevent horizontal scroll in flex layouts */
       display: flex;
       flex-direction: column;
       padding: 1rem;
       background-color: #1f1f1f;
+      box-sizing: border-box;
     }
 
     .chat-header h2 {
       text-align: center;
       color: #ffffff;
+      margin: 0 0 1rem;
     }
 
+    /* The scrollable chat area */
     #chat-history {
       flex: 1;
       overflow-y: auto;
+      margin-bottom: 1rem;
       padding: 1rem;
       border: 1px solid #333;
       border-radius: 5px;
       background-color: #1a1a1a;
+      box-sizing: border-box;
     }
 
     .message {
@@ -115,12 +131,16 @@
       background-color: #2f2f2f;
       color: #fff;
       border: 1px solid #444;
+      width: 100%;
+      box-sizing: border-box;
     }
 
+    /* Buttons + Textarea appearance fixes */
     button, textarea {
       -webkit-appearance: none;
     }
 
+    /* Mobile breakpoint */
     @media (max-width: 768px) {
       body {
         flex-direction: column; /* Stack threads and chat vertically */
@@ -135,42 +155,48 @@
 
       .chat-container {
         width: 100%; /* Full width chat container */
+        min-width: 0;
       }
+    }
+
+    /* Additional override for placeholder styling */
+    #question::placeholder {
+      color: #ffffff;
+      font-weight: bold;
+      font-style: italic;
+    }
+    #question {
+      background-color: #444444;
+      color: #ffffff;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
+  <!-- Sidebar for threads -->
   <div class="thread-list">
     <h3>Your Threads</h3>
     <div id="threads"></div>
     <button class="add-thread">+ New Thread</button>
   </div>
 
+  <!-- Main Chat Container -->
   <div class="chat-container">
     <div class="chat-header">
       <h2>IslamicGPT (Strengthen your Iman)</h2>
     </div>
+
     <div id="chat-history" class="empty"></div>
-    <textarea id="question" class="form-control" placeholder="Enter your question here..."></textarea>
+
+    <textarea
+      id="question"
+      class="form-control"
+      placeholder="Enter your question here..."
+    ></textarea>
+
     <button id="askBtn" class="btn btn-primary mt-2">Ask</button>
     <button id="clearBtn" class="btn btn-danger mt-2">Clear Chat</button>
   </div>
-  
-  <style>
-	  /* Styling the placeholder text */
-	  #question::placeholder {
-		color: #ffffff; /* Set placeholder text color */
-		font-weight: bold; /* Make the placeholder bold */
-		font-style: italic; /* Optional: Make italic */
-	  }
-
-	  /* Highlight effect for the entire textarea */
-	  #question {
-		background-color: #444444; /* Highlight the textarea background */
-		color: #ffffff; /* Text color inside the textarea */
-		font-weight: bold; /* Bold text */
-	  }
-	</style>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
@@ -266,8 +292,11 @@
       if (!question) return;
 
       threads[currentThreadId].messages.push({ role: "user", content: question });
+
+      // If this is the first message in the thread, update thread name
       if (threads[currentThreadId].messages.length === 1) {
-        threads[currentThreadId].name = question.length > 20 ? question.substring(0, 20) + "..." : question;
+        threads[currentThreadId].name =
+          question.length > 20 ? question.substring(0, 20) + "..." : question;
       }
       localStorage.setItem("threads", JSON.stringify(threads));
 
