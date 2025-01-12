@@ -2,19 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IslamicGPT (Strengthen your Iman)</title>
   <link
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
   />
   <style>
-    /* Reset and Basic Styling */
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
-      overflow-x: hidden; /* Prevent horizontal scrolling */
     }
 
     body {
@@ -25,7 +23,6 @@
       font-family: sans-serif;
     }
 
-    /* Thread List */
     .thread-list {
       width: 25%;
       max-width: 300px;
@@ -34,7 +31,6 @@
       padding: 1rem;
       display: flex;
       flex-direction: column;
-      box-sizing: border-box; /* Include padding in width calculation */
     }
 
     .thread {
@@ -48,8 +44,6 @@
       border-radius: 5px;
       color: #fff;
       cursor: pointer;
-      word-wrap: break-word; /* Ensure long thread names wrap */
-      overflow-wrap: break-word;
     }
 
     .thread.active {
@@ -75,17 +69,14 @@
       border-radius: 5px;
       text-align: center;
       cursor: pointer;
-      width: 100%; /* Full width button */
     }
 
-    /* Chat Container */
     .chat-container {
       flex: 1;
       display: flex;
       flex-direction: column;
       padding: 1rem;
       background-color: #1f1f1f;
-      box-sizing: border-box;
     }
 
     .chat-header h2 {
@@ -100,10 +91,6 @@
       border: 1px solid #333;
       border-radius: 5px;
       background-color: #1a1a1a;
-      max-width: 100%; /* Prevent overflow */
-      word-wrap: break-word; /* Ensure text wraps */
-      overflow-wrap: break-word;
-      box-sizing: border-box;
     }
 
     .message {
@@ -128,14 +115,12 @@
       background-color: #2f2f2f;
       color: #fff;
       border: 1px solid #444;
-      width: 100%; /* Full width */
     }
 
     button, textarea {
       -webkit-appearance: none;
     }
 
-    /* Responsive Design */
     @media (max-width: 768px) {
       body {
         flex-direction: column; /* Stack threads and chat vertically */
@@ -146,16 +131,10 @@
         max-width: none;
         border-right: none;
         border-bottom: 1px solid #333;
-        padding: 0.5rem; /* Adjust padding */
-        font-size: 0.9rem; /* Smaller font */
       }
 
       .chat-container {
         width: 100%; /* Full width chat container */
-      }
-
-      #question, .add-thread, #askBtn, #clearBtn {
-        width: 100%; /* Full width for inputs and buttons */
       }
     }
   </style>
@@ -176,168 +155,184 @@
     <button id="askBtn" class="btn btn-primary mt-2">Ask</button>
     <button id="clearBtn" class="btn btn-danger mt-2">Clear Chat</button>
   </div>
+  
+  <style>
+	  /* Styling the placeholder text */
+	  #question::placeholder {
+		color: #ffffff; /* Set placeholder text color */
+		font-weight: bold; /* Make the placeholder bold */
+		font-style: italic; /* Optional: Make italic */
+	  }
 
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      let threads = JSON.parse(localStorage.getItem("threads")) || {};
-      let currentThreadId;
+	  /* Highlight effect for the entire textarea */
+	  #question {
+		background-color: #444444; /* Highlight the textarea background */
+		color: #ffffff; /* Text color inside the textarea */
+		font-weight: bold; /* Bold text */
+	  }
+	</style>
 
-      // Ensure there is at least one thread at startup
-      if (Object.keys(threads).length === 0) {
-        currentThreadId = createNewThread();
-      } else {
-        currentThreadId = Object.keys(threads)[0];
-      }
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    let threads = JSON.parse(localStorage.getItem("threads")) || {};
+    let currentThreadId;
 
-      function renderThreads() {
-        const threadList = document.getElementById("threads");
-        threadList.innerHTML = "";
+    // Ensure there is at least one thread at startup
+    if (Object.keys(threads).length === 0) {
+      currentThreadId = createNewThread();
+    } else {
+      currentThreadId = Object.keys(threads)[0];
+    }
 
-        for (const threadId in threads) {
-          const threadDiv = document.createElement("div");
-          threadDiv.className =
-            "thread" + (threadId === currentThreadId ? " active" : "");
+    function renderThreads() {
+      const threadList = document.getElementById("threads");
+      threadList.innerHTML = "";
 
-          // Thread name
-          const threadName = document.createElement("span");
-          threadName.textContent = threads[threadId].name || `Thread ${threadId}`;
-          threadDiv.appendChild(threadName);
+      for (const threadId in threads) {
+        const threadDiv = document.createElement("div");
+        threadDiv.className =
+          "thread" + (threadId === currentThreadId ? " active" : "");
 
-          // Delete button
-          const deleteBtn = document.createElement("button");
-          deleteBtn.className = "delete-thread";
-          deleteBtn.textContent = "×";
-          deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            deleteThread(threadId);
-          };
-          threadDiv.appendChild(deleteBtn);
+        // Thread name
+        const threadName = document.createElement("span");
+        threadName.textContent = threads[threadId].name || `Thread ${threadId}`;
+        threadDiv.appendChild(threadName);
 
-          threadDiv.onclick = () => switchThread(threadId);
-          threadList.appendChild(threadDiv);
-        }
-      }
-
-      function createNewThread() {
-        const threadId = Date.now().toString();
-        threads[threadId] = {
-          name: `Thread ${Object.keys(threads).length + 1}`,
-          messages: [],
+        // Delete button
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "delete-thread";
+        deleteBtn.textContent = "×";
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          deleteThread(threadId);
         };
-        localStorage.setItem("threads", JSON.stringify(threads));
-        renderThreads();
-        return threadId;
+        threadDiv.appendChild(deleteBtn);
+
+        threadDiv.onclick = () => switchThread(threadId);
+        threadList.appendChild(threadDiv);
       }
+    }
 
-      function deleteThread(threadId) {
-        delete threads[threadId];
-        localStorage.setItem("threads", JSON.stringify(threads));
+    function createNewThread() {
+      const threadId = Date.now().toString();
+      threads[threadId] = {
+        name: `Thread ${Object.keys(threads).length + 1}`,
+        messages: [],
+      };
+      localStorage.setItem("threads", JSON.stringify(threads));
+      renderThreads();
+      return threadId;
+    }
 
-        const threadIds = Object.keys(threads);
-        if (threadIds.length > 0) {
-          currentThreadId = threadIds[0];
-        } else {
-          currentThreadId = createNewThread();
-        }
+    function deleteThread(threadId) {
+      delete threads[threadId];
+      localStorage.setItem("threads", JSON.stringify(threads));
 
-        renderThreads();
-        renderChatHistory();
-      }
-
-      function switchThread(threadId) {
-        currentThreadId = threadId;
-        renderThreads();
-        renderChatHistory();
-      }
-
-      function renderChatHistory() {
-        const chatHistory = document.getElementById("chat-history");
-        chatHistory.innerHTML = "";
-
-        const messages = threads[currentThreadId].messages || [];
-        for (const message of messages) {
-          const messageDiv = document.createElement("div");
-          messageDiv.className = "message " + message.role;
-          messageDiv.textContent = message.content;
-          chatHistory.appendChild(messageDiv);
-        }
-
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-      }
-
-      async function sendMessage() {
-        const questionInput = document.getElementById("question");
-        const question = questionInput.value.trim();
-        if (!question) return;
-
-        threads[currentThreadId].messages.push({ role: "user", content: question });
-        if (threads[currentThreadId].messages.length === 1) {
-          threads[currentThreadId].name = question.length > 20 ? question.substring(0, 20) + "..." : question;
-        }
-        localStorage.setItem("threads", JSON.stringify(threads));
-
-        questionInput.value = "";
-        renderChatHistory();
-
-        try {
-          const response = await fetch("/ask_stream", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              question: question,
-              thread_id: currentThreadId,
-            }),
-          });
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder("utf-8");
-          let done = false;
-
-          const assistantIndex =
-            threads[currentThreadId].messages.push({
-              role: "assistant",
-              content: "",
-            }) - 1;
-
-          while (!done) {
-            const { value, done: readerDone } = await reader.read();
-            done = readerDone;
-            if (value) {
-              const chunk = decoder.decode(value, { stream: true });
-              threads[currentThreadId].messages[assistantIndex].content += chunk;
-              renderChatHistory();
-            }
-          }
-          localStorage.setItem("threads", JSON.stringify(threads));
-        } catch (err) {
-          console.error("Error fetching response:", err);
-        }
-      }
-
-      document.getElementById("askBtn").addEventListener("click", sendMessage);
-
-      document.getElementById("question").addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-          event.preventDefault();
-          sendMessage();
-        }
-      });
-
-      document.getElementById("clearBtn").addEventListener("click", () => {
-        threads[currentThreadId].messages = [];
-        localStorage.setItem("threads", JSON.stringify(threads));
-        renderChatHistory();
-      });
-
-      // Event listener for creating new threads
-      document.querySelector(".add-thread").addEventListener("click", () => {
+      const threadIds = Object.keys(threads);
+      if (threadIds.length > 0) {
+        currentThreadId = threadIds[0];
+      } else {
         currentThreadId = createNewThread();
-        renderChatHistory();
-      });
+      }
 
       renderThreads();
       renderChatHistory();
+    }
+
+    function switchThread(threadId) {
+      currentThreadId = threadId;
+      renderThreads();
+      renderChatHistory();
+    }
+
+    function renderChatHistory() {
+      const chatHistory = document.getElementById("chat-history");
+      chatHistory.innerHTML = "";
+
+      const messages = threads[currentThreadId].messages || [];
+      for (const message of messages) {
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "message " + message.role;
+        messageDiv.textContent = message.content;
+        chatHistory.appendChild(messageDiv);
+      }
+
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const questionInput = document.getElementById("question");
+      const question = questionInput.value.trim();
+      if (!question) return;
+
+      threads[currentThreadId].messages.push({ role: "user", content: question });
+      if (threads[currentThreadId].messages.length === 1) {
+        threads[currentThreadId].name = question.length > 20 ? question.substring(0, 20) + "..." : question;
+      }
+      localStorage.setItem("threads", JSON.stringify(threads));
+
+      questionInput.value = "";
+      renderChatHistory();
+
+      try {
+        const response = await fetch("/ask_stream", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: question,
+            thread_id: currentThreadId,
+          }),
+        });
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let done = false;
+
+        const assistantIndex =
+          threads[currentThreadId].messages.push({
+            role: "assistant",
+            content: "",
+          }) - 1;
+
+        while (!done) {
+          const { value, done: readerDone } = await reader.read();
+          done = readerDone;
+          if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            threads[currentThreadId].messages[assistantIndex].content += chunk;
+            renderChatHistory();
+          }
+        }
+        localStorage.setItem("threads", JSON.stringify(threads));
+      } catch (err) {
+        console.error("Error fetching response:", err);
+      }
+    }
+
+    document.getElementById("askBtn").addEventListener("click", sendMessage);
+
+    document.getElementById("question").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
     });
-  </script>
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      threads[currentThreadId].messages = [];
+      localStorage.setItem("threads", JSON.stringify(threads));
+      renderChatHistory();
+    });
+
+    // Event listener for creating new threads
+    document.querySelector(".add-thread").addEventListener("click", () => {
+      currentThreadId = createNewThread();
+      renderChatHistory();
+    });
+
+    renderThreads();
+    renderChatHistory();
+  });
+</script>
 </body>
 </html>
